@@ -282,7 +282,6 @@ h1, h2, h3, h4 {
   position: relative;
   height: min(74vh, 660px);
   margin: 30px 0 0;
-  border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
   overflow: hidden;
 }
