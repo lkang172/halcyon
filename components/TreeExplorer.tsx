@@ -14,10 +14,10 @@ export default function TreeExplorer({ layout }: { layout: FlatLayout }) {
       <div className="preview">
         {focused ? (
           <div>
-            <span className="eyebrow">{focused.category ?? "the root"}</span>
+            <span className="eyebrow">{focused.label}</span>
             <h3>{focused.title}</h3>
-            <p>{focused.excerpt || "Every branch below grows out of this one."}</p>
-            {focused.href && focused.href !== "/" ? (
+            <p>{focused.excerpt || "Everything below grows out of this cluster."}</p>
+            {focused.href ? (
               <p className="meta">
                 <Link className="preview-read" href={focused.href}>
                   Read →

@@ -2,10 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FlatLayout, FlatNode } from "@/lib/tree";
+import { NODE_H, NODE_W, type FlatLayout, type FlatNode } from "@/lib/tree";
 
-const NODE_W = 152;
-const NODE_H = 46;
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 2.2;
 
@@ -130,7 +128,7 @@ export default function TreeCanvas({
   const open = (n: FlatNode) => {
     // A click that ended a pan should not navigate.
     if (moved.current) return;
-    if (n.href && n.href !== "/") router.push(n.href);
+    if (n.href) router.push(n.href);
   };
 
   return (
@@ -155,7 +153,7 @@ export default function TreeCanvas({
           {layout.nodes.map((n) => (
             <g
               key={n.id}
-              className={`node-g${n.href === "/" ? " node-root" : ""}`}
+              className={`node-g${n.href ? "" : " node-root"}`}
               role="treeitem"
               aria-level={n.depth + 1}
               tabIndex={0}
@@ -184,11 +182,11 @@ export default function TreeCanvas({
                 width={NODE_W}
                 height={NODE_H}
               />
-              <text className="node-cat" x={n.x} y={n.y - 8} textAnchor="middle">
-                {n.category ?? "the root"}
+              <text className="node-cat" x={n.x} y={n.y - 12} textAnchor="middle">
+                {n.label}
               </text>
-              <text className="node-title" x={n.x} y={n.y + 11} textAnchor="middle">
-                {n.title.length > 22 ? `${n.title.slice(0, 21)}…` : n.title}
+              <text className="node-title" x={n.x} y={n.y + 12} textAnchor="middle">
+                {n.title.length > 26 ? `${n.title.slice(0, 25)}…` : n.title}
               </text>
             </g>
           ))}

@@ -1,10 +1,10 @@
 ---
-title: "Who Do You Trust to Import"
-category: "Incidents"
-date: "2026-08-25"
-excerpt: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor."
-parent: "the-hugging-face-incident"
-readingTime: 9
+title: "What We Actually Measure"
+category: "Evaluation"
+date: "2026-08-06"
+excerpt: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit inde."
+parent: "root"
+readingTime: 10
 ---
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

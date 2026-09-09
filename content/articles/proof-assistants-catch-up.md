@@ -1,10 +1,10 @@
 ---
-title: "Who Do You Trust to Import"
-category: "Incidents"
-date: "2026-08-25"
-excerpt: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor."
-parent: "the-hugging-face-incident"
-readingTime: 9
+title: "Proof Assistants Catch Up"
+category: "Research"
+date: "2026-09-07"
+excerpt: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit inde."
+parent: "verifying-a-machine-proof"
+readingTime: 8
 ---
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

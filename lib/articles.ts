@@ -9,32 +9,45 @@ import rehypeStringify from "rehype-stringify";
 
 const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
 
-export type Branch = "left" | "right";
+export const ROOT_ID = "root";
 
 export type Article = {
   slug: string;
   title: string;
   category: string;
+  categorySlug: string;
   date: string;
   excerpt: string;
   parent: string;
-  branch: Branch;
   readingTime: number;
 };
 
-export const ROOT_ID = "root";
+export type Category = {
+  name: string;
+  slug: string;
+  articles: Article[];
+  latest: string;
+};
+
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 function readOne(file: string): Article {
   const raw = fs.readFileSync(path.join(ARTICLES_DIR, file), "utf8");
   const { data } = matter(raw);
+  const category = String(data.category ?? "Uncategorized");
   return {
     slug: file.replace(/\.md$/, ""),
     title: String(data.title ?? "Untitled"),
-    category: String(data.category ?? "Uncategorized"),
+    category,
+    categorySlug: slugify(category),
     date: String(data.date ?? ""),
     excerpt: String(data.excerpt ?? ""),
     parent: String(data.parent ?? ROOT_ID),
-    branch: data.branch === "right" ? "right" : "left",
     readingTime: Number(data.readingTime ?? 5),
   };
 }
@@ -63,13 +76,23 @@ export function getArticle(slug: string): { meta: Article; html: string } | null
   return { meta: readOne(`${slug}.md`), html };
 }
 
-export function getCategories(articles: Article[]): { name: string; articles: Article[] }[] {
+/** Groups articles into the categories that become the blobs on the home page. */
+export function getCategories(articles = getArticles()): Category[] {
   const map = new Map<string, Article[]>();
   for (const a of articles) {
     if (!map.has(a.category)) map.set(a.category, []);
     map.get(a.category)!.push(a);
   }
   return [...map.entries()]
-    .map(([name, list]) => ({ name, articles: list }))
+    .map(([name, list]) => ({
+      name,
+      slug: slugify(name),
+      articles: list,
+      latest: list.reduce((m, a) => (a.date > m ? a.date : m), ""),
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getCategory(categorySlug: string): Category | null {
+  return getCategories().find((c) => c.slug === categorySlug) ?? null;
 }

@@ -1,10 +1,10 @@
 ---
-title: "Navier-Stokes and the Machine"
-category: "Research"
-date: "2026-08-30"
-excerpt: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt."
-parent: "root"
-readingTime: 5
+title: "Contamination Everywhere"
+category: "Evaluation"
+date: "2026-08-13"
+excerpt: "Praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias."
+parent: "reasoning-benchmarks"
+readingTime: 6
 ---
 
 Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.

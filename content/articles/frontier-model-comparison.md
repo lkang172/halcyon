@@ -1,10 +1,9 @@
 ---
 title: "Frontier Model Comparison"
 category: "Models"
-date: "2026-08-05"
-excerpt: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi."
+date: "2026-07-19"
+excerpt: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi aliquip."
 parent: "a-map-of-the-models"
-branch: "left"
 readingTime: 5
 ---
 

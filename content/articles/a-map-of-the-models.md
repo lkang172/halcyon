@@ -1,10 +1,9 @@
 ---
 title: "A Map of the Models"
 category: "Models"
-date: "2026-08-02"
+date: "2026-07-14"
 excerpt: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor."
 parent: "root"
-branch: "left"
 readingTime: 4
 ---
 

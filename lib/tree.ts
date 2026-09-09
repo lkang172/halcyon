@@ -1,9 +1,13 @@
-import { ROOT_ID, type Article, type Branch } from "./articles";
+import type { Article } from "./articles";
+
+// Kept local so this module stays free of the filesystem imports in ./articles
+// and can be pulled into client components for its types and constants.
+const ROOT_ID = "root";
 
 export type TreeNode = {
   id: string;
   title: string;
-  category: string | null;
+  label: string;
   excerpt: string;
   date: string;
   href: string | null;
@@ -11,122 +15,97 @@ export type TreeNode = {
   depth: number;
   x: number;
   y: number;
-  left: TreeNode | null;
-  right: TreeNode | null;
+  children: TreeNode[];
 };
 
-export type Edge = {
-  from: [number, number];
-  to: [number, number];
-  fromId: string;
-  toId: string;
-  branch: Branch;
-};
+export type Edge = { from: [number, number]; to: [number, number]; fromId: string; toId: string };
 
-export type Layout = {
-  nodes: TreeNode[];
-  edges: Edge[];
-  width: number;
-  height: number;
-};
+export type FlatNode = Omit<TreeNode, "children">;
+export type FlatLayout = { nodes: FlatNode[]; edges: Edge[]; width: number; height: number };
 
-const COL = 190;
-const ROW = 150;
-const PAD = 120;
+/** Node box, in the same units the canvas draws in. */
+export const NODE_W = 208;
+export const NODE_H = 66;
 
-/** Builds the binary tree from article frontmatter, then lays it out. */
-export function buildLayout(articles: Article[], rootTitle: string): Layout {
+const COL = NODE_W + 26;
+const ROW = NODE_H + 62;
+const PAD = 90;
+
+/**
+ * Builds one tree per category. A node may have any number of children; the
+ * frontmatter only says who the parent is.
+ */
+export function buildCategoryLayout(
+  categoryName: string,
+  articles: Article[],
+): FlatLayout {
   const byId = new Map<string, TreeNode>();
 
   const make = (
     id: string,
     title: string,
-    category: string | null,
+    label: string,
     excerpt: string,
     date: string,
     href: string | null,
   ): TreeNode => ({
-    id, title, category, excerpt, date, href,
-    parentId: null, depth: 0, x: 0, y: 0, left: null, right: null,
+    id, title, label, excerpt, date, href,
+    parentId: null, depth: 0, x: 0, y: 0, children: [],
   });
 
-  const root = make(ROOT_ID, rootTitle, null, "", "", "/");
+  const root = make(ROOT_ID, categoryName, "the category", "", "", null);
   byId.set(ROOT_ID, root);
 
-  // Oldest-first so parents are placed before their children.
   const ordered = [...articles].sort((a, b) => a.date.localeCompare(b.date));
   for (const a of ordered) {
     byId.set(a.slug, make(a.slug, a.title, a.category, a.excerpt, a.date, `/articles/${a.slug}`));
   }
 
-  const orphans: Article[] = [];
   for (const a of ordered) {
     const node = byId.get(a.slug)!;
-    const parent = byId.get(a.parent);
-    if (!parent) {
-      orphans.push(a);
-      continue;
-    }
-    if (parent[a.branch] === null) parent[a.branch] = node;
-    else if (parent.left === null) parent.left = node;
-    else if (parent.right === null) parent.right = node;
-    else {
-      orphans.push(a);
-      continue;
-    }
+    // A parent outside this category cannot be drawn here, so the article
+    // hangs off the category node instead of vanishing.
+    const parent = byId.get(a.parent) ?? root;
+    parent.children.push(node);
     node.parentId = parent.id;
   }
 
-  // Anything that could not be attached hangs off the first free slot found
-  // in a breadth-first sweep, so no article ever disappears from the tree.
-  for (const a of orphans) {
-    const node = byId.get(a.slug)!;
-    const queue: TreeNode[] = [root];
-    while (queue.length) {
-      const n = queue.shift()!;
-      if (n.left === null) { n.left = node; node.parentId = n.id; break; }
-      if (n.right === null) { n.right = node; node.parentId = n.id; break; }
-      queue.push(n.left, n.right);
-    }
-  }
-
-  // In-order traversal: one column per node guarantees no overlap.
-  let column = 0;
+  // Tidy layout: leaves take the next free column, parents centre over their
+  // children. Because sibling subtrees own disjoint column ranges, no two
+  // nodes on a level can collide however wide the tree grows.
+  let nextColumn = 0;
   const nodes: TreeNode[] = [];
-  const walk = (n: TreeNode | null, depth: number) => {
-    if (!n) return;
-    walk(n.left, depth + 1);
+  const place = (n: TreeNode, depth: number) => {
     n.depth = depth;
-    n.x = PAD + column * COL;
     n.y = PAD + depth * ROW;
-    column += 1;
+    if (n.children.length === 0) {
+      n.x = PAD + nextColumn * COL;
+      nextColumn += 1;
+    } else {
+      for (const child of n.children) place(child, depth + 1);
+      const first = n.children[0].x;
+      const last = n.children[n.children.length - 1].x;
+      n.x = (first + last) / 2;
+    }
     nodes.push(n);
-    walk(n.right, depth + 1);
   };
-  walk(root, 0);
+  place(root, 0);
 
   const edges: Edge[] = [];
   for (const n of nodes) {
-    if (n.left)
-      edges.push({ from: [n.x, n.y], to: [n.left.x, n.left.y], fromId: n.id, toId: n.left.id, branch: "left" });
-    if (n.right)
-      edges.push({ from: [n.x, n.y], to: [n.right.x, n.right.y], fromId: n.id, toId: n.right.id, branch: "right" });
+    for (const c of n.children) {
+      edges.push({ from: [n.x, n.y], to: [c.x, c.y], fromId: n.id, toId: c.id });
+    }
   }
 
-  const width = PAD * 2 + Math.max(0, column - 1) * COL;
+  const width = PAD * 2 + Math.max(0, nextColumn - 1) * COL;
   const maxDepth = nodes.reduce((m, n) => Math.max(m, n.depth), 0);
   const height = PAD * 2 + maxDepth * ROW;
 
-  return { nodes, edges, width, height };
-}
-
-/** Strips child pointers so the layout can cross the server/client boundary. */
-export function serializeLayout(layout: Layout) {
   return {
-    ...layout,
-    nodes: layout.nodes.map(({ left, right, ...rest }) => rest),
+    nodes: nodes.map(({ children, ...rest }) => rest),
+    edges,
+    width,
+    height,
   };
 }
-
-export type FlatNode = Omit<TreeNode, "left" | "right">;
-export type FlatLayout = Omit<Layout, "nodes"> & { nodes: FlatNode[] };

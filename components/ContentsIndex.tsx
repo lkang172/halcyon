@@ -27,6 +27,8 @@ export default function ContentsIndex({ articles }: { articles: Article[] }) {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  const slugOf = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     const matches = q
@@ -76,6 +78,9 @@ export default function ContentsIndex({ articles }: { articles: Article[] }) {
               <span className="eyebrow">
                 {group.items.length} {group.items.length === 1 ? "piece" : "pieces"}
               </span>
+              <Link className="eyebrow tree-jump" href={`/tree/${slugOf(group.name)}`}>
+                see the tree →
+              </Link>
             </div>
             {group.items.map((a) => (
               <Link className="entry" key={a.slug} href={`/articles/${a.slug}`}>

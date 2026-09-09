@@ -1,10 +1,10 @@
 ---
-title: "The Hugging Face Incident"
-category: "Incidents"
-date: "2026-08-22"
-excerpt: "Saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae itaque."
-parent: "when-the-commons-breaks"
-readingTime: 8
+title: "Small Models That Punch Up"
+category: "Models"
+date: "2026-08-04"
+excerpt: "Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto."
+parent: "open-weights-in-practice"
+readingTime: 9
 ---
 
 Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.

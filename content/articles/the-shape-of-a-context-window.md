@@ -1,10 +1,10 @@
 ---
-title: "Navier-Stokes and the Machine"
-category: "Research"
-date: "2026-08-30"
+title: "The Shape of a Context Window"
+category: "Models"
+date: "2026-07-28"
 excerpt: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt."
-parent: "root"
-readingTime: 5
+parent: "a-map-of-the-models"
+readingTime: 7
 ---
 
 Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.

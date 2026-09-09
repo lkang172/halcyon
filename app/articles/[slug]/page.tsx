@@ -41,7 +41,9 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
       <div className="shell">
         <div className="article-head">
           <div className="article-meta">
-            <span className="eyebrow">{meta.category}</span>
+            <Link className="eyebrow" href={`/tree/${meta.categorySlug}`}>
+              {meta.category}
+            </Link>
             <span className="eyebrow">{formatDate(meta.date)}</span>
             <span className="eyebrow">{meta.readingTime} min</span>
           </div>
@@ -57,7 +59,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
 
         <div className="siblings">
           <span className="eyebrow">
-            {meta.parent === ROOT_ID ? "Grows from the root" : "Grows from"}
+            {meta.parent === ROOT_ID ? "Sits at the top of" : "Grows from"}
           </span>
           {parent ? (
             <h2 style={{ fontSize: "1.4rem", marginTop: 8 }}>
@@ -65,7 +67,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
             </h2>
           ) : (
             <h2 style={{ fontSize: "1.4rem", marginTop: 8 }}>
-              <Link href="/">halcyon ↑</Link>
+              <Link href={`/tree/${meta.categorySlug}`}>{meta.category} ↑</Link>
             </h2>
           )}
 
