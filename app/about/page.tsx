@@ -8,35 +8,36 @@ export default function AboutPage() {
     <main>
       <Masthead tagline="about" />
       <div className="shell">
-        <span className="eyebrow">About</span>
-        <h1 style={{ fontSize: "2.6rem", margin: "12px 0 0" }}>Why a tree</h1>
+        <h1 style={{ fontSize: "2.6rem", margin: "12px 0 0" }}>About</h1>
         <p className="lede">
-          Since the invention of the transformer in 2017, it seems that AI has been evolving at an even more rapid pace.
-          My goal is to learn about emerging technology architectures and use cases, significant breakthroughs, 
-          safety risks, and more, and to document them by writing articles by hand. I believe that the best test of 
-          understanding a concept is to explain it to others. 
+          halcyon (adjective): a period of time in the past that was calm, peaceful, happy, and prosperous
         </p>
         <div className="prose">
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            I first learned of this word when seeing it used to describe a peaceful watermeadow in one of my 
+            favorite books of all time, "Mossflower". However, "halcyon" can hardly be used to describe current 
+            times, which are rapidly changing with the invention of groundbreaking technologies. 
           </p>
           <p>
-            Every essay hangs beneath the one that provoked it. Two essays that share a parent are
-            two answers to the same question, which is usually more interesting than two essays
-            published on the same day.
+            Since the invention of the transformer in 2017, it seems that AI has been evolving at an even more rapid pace, which carries significant implications for everyone. 
+            I strongly believe in the importance of understanding the technologies I use and help develop. Thus, my goal is to learn about emerging technology architectures and use cases, significant breakthroughs, 
+            safety risks, and more, and to document them by writing articles by hand. I believe that the best test of 
+            understanding a concept is to explain it to others. 
+            This website is a commitment that every week, I will learn at least one new thing from my list of interests
+            and create an article about it. Please feel free to follow along - hopefully you will learn something new as well. 
+          </p>
+          <p>
+            If anything that I write is incorrect, please feel free to open an issue in the Github repo. 
           </p>
           <h2>How to read it</h2>
           <p>
-            Start at the root and walk down. Or open the contents page, which flattens everything
-            into categories for when you already know what you are looking for.
+            My interests span many areas in the AI field, including applied AI, agentic development, 
+            AI alignment, mechanistic intepretability, model architecture, and more. An intuitive way for me to 
+            organize these articles is by grouping related concepts in a "blob", and in each blob, binary trees relate 
+            articles to each other in a parent-child relationship that gives the reader a learning path to understand a more niche article 
+            by starting from the fundamentals. 
           </p>
-          <p>
-            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-            nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-            officia deserunt mollit anim id est laborum.
-          </p>
+
         </div>
       </div>
       <Footer />

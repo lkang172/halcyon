@@ -11,6 +11,8 @@ readingTime: 6
 >
 > — Charles Goodhart
 
+![Artificial Analysis' Intelligence Index](https://www.deeplearning.ai/_next/image?url=https%3A%2F%2Fcharonhub.deeplearning.ai%2Fcontent%2Fimages%2F2026%2F01%2FArtificial-Analysis-Revamps-Intelligence-Index-1.png&w=3840&q=75)
+
 With 9 new models releasing since September 2026, the AI scene is moving at a faster pace than ever. Benchmarks can be a useful way to compare models, but only if you know what the benchmark measures, and how they can be duped.
 
 This article will focus less on the current models, as they are constantly changing. Instead, we will focus on what goes into their evaluation and benchmarking.
