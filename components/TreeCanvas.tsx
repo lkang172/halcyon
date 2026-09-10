@@ -38,8 +38,8 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 
 const MAX_TITLE_SIZE = 24;
 const MIN_TITLE_SIZE = 13;
-/** Instrument Serif runs about 0.39em per character; 0.43 leaves a margin. */
-const CHAR_EM = 0.43;
+/** Literata measures about 0.56em per character; 0.60 leaves a margin. */
+const CHAR_EM = 0.6;
 
 function wrapWords(title: string, maxChars: number): string[] {
   const lines: string[] = [];
@@ -56,25 +56,36 @@ function wrapWords(title: string, maxChars: number): string[] {
   return lines;
 }
 
+/** The one- or two-line split with the shortest long line, or null if neither fits. */
+function balancedSplit(title: string, maxChars: number): string[] | null {
+  if (title.length <= maxChars) return [title];
+  const words = title.split(/\s+/);
+  let best: string[] | null = null;
+  for (let i = 1; i < words.length; i += 1) {
+    const head = words.slice(0, i).join(" ");
+    const tail = words.slice(i).join(" ");
+    if (head.length > maxChars || tail.length > maxChars) continue;
+    const longest = Math.max(head.length, tail.length);
+    if (!best || longest < Math.max(best[0].length, best[1].length)) best = [head, tail];
+  }
+  return best;
+}
+
 /**
- * Fits a whole title inside a blob: two lines by preference, then smaller
- * type, and only a third line once the type is as small as it goes. Titles are
- * never cut short.
+ * Fits a whole title inside a blob: two balanced lines by preference, then
+ * smaller type, and only a third line once the type is as small as it goes.
+ * Titles are never cut short.
  */
 function fitTitle(title: string, rx: number): { lines: string[]; size: number } {
   // Blobs pinch towards their edges, so the usable run is well short of 2 * rx.
   const inner = rx * 1.52;
-  let fallback: { lines: string[]; size: number } | null = null;
 
   for (let size = MAX_TITLE_SIZE; size >= MIN_TITLE_SIZE; size -= 1) {
     const maxChars = Math.max(6, Math.floor(inner / (size * CHAR_EM)));
-    const lines = wrapWords(title, maxChars);
-    const fits = lines.every((l) => l.length <= maxChars);
-    if (fits && lines.length <= 2) return { lines, size };
-    if (fits && !fallback) fallback = { lines, size };
+    const split = balancedSplit(title, maxChars);
+    if (split) return { lines: split, size };
   }
 
-  if (fallback) return fallback;
   const maxChars = Math.max(6, Math.floor(inner / (MIN_TITLE_SIZE * CHAR_EM)));
   return { lines: wrapWords(title, maxChars), size: MIN_TITLE_SIZE };
 }
@@ -98,6 +109,7 @@ export default function TreeCanvas({
   const pan = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
   const nodeDrag = useRef<{ id: string; px: number; py: number; ox: number; oy: number } | null>(null);
   const moved = useRef(false);
+  const opened = useRef(false);
 
   // Mirrored in a ref so the pointer-up handler always persists the latest
   // arrangement rather than whatever the closure captured.
@@ -235,14 +247,18 @@ export default function TreeCanvas({
     const o = offsets[n.id] ?? { dx: 0, dy: 0 };
     nodeDrag.current = { id: n.id, px: e.clientX, py: e.clientY, ox: o.dx, oy: o.dy };
     moved.current = false;
+    opened.current = false;
     setHeld(n.id);
-    wrap.current?.setPointerCapture(e.pointerId);
+    // Captured on the node rather than the wrapper: the drag still survives the
+    // pointer leaving the blob, but the browser keeps delivering the click here
+    // instead of retargeting it at the wrapper, where nothing listens for it.
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     const nd = nodeDrag.current;
     if (nd) {
-      if (Math.hypot(e.clientX - nd.px, e.clientY - nd.py) > 4) moved.current = true;
+      if (Math.hypot(e.clientX - nd.px, e.clientY - nd.py) > 7) moved.current = true;
       const dx = nd.ox + (e.clientX - nd.px) / view.scale;
       const dy = nd.oy + (e.clientY - nd.py) / view.scale;
       setOffsets((prev) => ({ ...prev, [nd.id]: { dx, dy } }));
@@ -297,7 +313,10 @@ export default function TreeCanvas({
 
   const open = (id: string) => {
     const href = byId.get(id)?.href;
-    if (href) router.push(href);
+    // Pointer-up and click can both land; only the first should navigate.
+    if (!href || opened.current) return;
+    opened.current = true;
+    router.push(href);
   };
 
   /**
@@ -354,6 +373,9 @@ export default function TreeCanvas({
                 tabIndex={0}
                 transform={`translate(${x} ${y})`}
                 onPointerDown={(e) => startNodeDrag(e, n)}
+                onClick={() => {
+                  if (!moved.current) open(n.id);
+                }}
                 onMouseEnter={() => enter(n)}
                 onFocus={() => enter(n)}
                 onBlur={leave}
@@ -397,7 +419,6 @@ export default function TreeCanvas({
           className={`node-card${card.flip ? " flip" : ""}`}
           style={{ left: card.left, top: card.top }}
         >
-          <span className="eyebrow">{card.node.label}</span>
           <h3>{card.node.title}</h3>
           <p>{card.node.excerpt || "Everything below grows out of this cluster."}</p>
           {card.node.href ? <span className="node-card-cue">Click to read →</span> : null}

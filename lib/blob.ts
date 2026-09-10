@@ -52,15 +52,25 @@ export type BlobPlacement = {
   tilt: number;
 };
 
-/** Scatters blobs around a loose ellipse so any number of categories still reads. */
-export function placeBlob(index: number, total: number, weight: number, seed: number): BlobPlacement {
+/**
+ * Scatters blobs around a loose ellipse so any number of categories still
+ * reads. A blob is sized by its name as well as its weight, so a long category
+ * name never spills over the edge of a small blob.
+ */
+export function placeBlob(
+  index: number,
+  total: number,
+  weight: number,
+  seed: number,
+  nameLength: number,
+): BlobPlacement {
   const angle = (index / total) * Math.PI * 2 - Math.PI / 2;
   const jitterX = (rand(seed) - 0.5) * 9;
   const jitterY = (rand(seed + 91) - 0.5) * 9;
   return {
     left: Math.round((50 + Math.cos(angle) * 27 + jitterX) * 100) / 100,
     top: Math.round((50 + Math.sin(angle) * 25 + jitterY) * 100) / 100,
-    size: Math.round(Math.min(300, 186 + weight * 13)),
+    size: Math.round(Math.min(330, Math.max(196, 118 + nameLength * 11 + weight * 12))),
     duration: Math.round((17 + rand(seed + 7) * 12) * 10) / 10,
     delay: Math.round(-rand(seed + 13) * 140) / 10,
     drift: Math.round(8 + rand(seed + 21) * 10),

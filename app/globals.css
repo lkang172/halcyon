@@ -331,14 +331,14 @@ h1, h2, h3, h4 {
 .blob-label {
   position: relative;
   text-align: center;
-  padding: 0 12%;
+  padding: 0 10%;
 }
 
 .blob-name {
   display: block;
   font-family: var(--serif);
-  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
-  line-height: 1.1;
+  font-size: clamp(1rem, 1.8vw, 1.5rem);
+  line-height: 1.15;
   color: var(--ink);
 }
 
@@ -427,7 +427,7 @@ h1, h2, h3, h4 {
 /* Opaque, so the paper grid stops at the edge of a piece you are reading. */
 .article-page { background: var(--paper); }
 
-.prose { font-family: var(--serif); font-size: 1.12rem; line-height: 1.72; color: #24211d; }
+.prose { font-family: var(--serif); font-size: 1.22rem; line-height: 1.75; color: #24211d; }
 .prose h2 { font-size: 1.55rem; margin: 44px 0 12px; }
 .prose p { margin: 0 0 20px; }
 .prose blockquote {
@@ -470,14 +470,7 @@ h1, h2, h3, h4 {
   color: var(--ink);
 }
 
-/* The display serif ships at one weight, so emphasis switches face rather
-   than leaning on a synthesised bold. */
-.prose strong {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 0.86em;
-  letter-spacing: -0.005em;
-}
+.prose strong { font-weight: 600; }
 
 .prose ul ul {
   margin: 6px 0 0;

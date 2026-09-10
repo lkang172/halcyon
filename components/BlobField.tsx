@@ -9,7 +9,7 @@ export default function BlobField({ categories }: { categories: Category[] }) {
     <div className="blob-field">
       {categories.map((category, i) => {
         const seed = seedFrom(category.slug);
-        const p = placeBlob(i, categories.length, category.articles.length, seed);
+        const p = placeBlob(i, categories.length, category.articles.length, seed, category.name.length);
         return (
           <Link
             key={category.slug}

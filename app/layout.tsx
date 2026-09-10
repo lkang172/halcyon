@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Literata } from "next/font/google";
 import Menu from "@/components/Menu";
 import "./globals.css";
 
-const display = Instrument_Serif({
-  weight: "400",
+const display = Literata({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
