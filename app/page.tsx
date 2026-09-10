@@ -9,11 +9,8 @@ export default function HomePage() {
 
   return (
     <main>
-      <Masthead tagline={`${total} pieces in ${categories.length} clusters. Pick one to open its tree.`} />
+      <Masthead tagline={`lucas' thoughts on emerging technology`} />
       <BlobField categories={categories} />
-      <p className="blob-hint">
-        Each cluster holds a tree. Inside one, an essay hangs beneath the essay that provoked it.
-      </p>
       <Footer />
     </main>
   );

@@ -23,9 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "halcyon — notes on machines that think",
+  title: "lucas' notes",
   description:
-    "A binary tree of essays on artificial intelligence: incidents, proofs, models, and the arguments between them.",
+    "",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

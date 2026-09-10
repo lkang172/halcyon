@@ -4,7 +4,6 @@ import Masthead from "@/components/Masthead";
 export const metadata = { title: "Contact — halcyon" };
 
 const CHANNELS = [
-  { key: "Email", label: "lucaskang.gt@gmail.com", href: "mailto:lucaskang.gt@gmail.com" },
   { key: "GitHub", label: "github.com/lkang172", href: "https://github.com/lkang172" },
   { key: "Corrections", label: "Open an issue on the repository", href: "https://github.com/lkang172" },
 ];

@@ -10,7 +10,7 @@ export default function Masthead({ tagline }: { tagline?: string }) {
           </Link>
         </h1>
         <p className="tagline">
-          {tagline ?? "Notes on machines that think, arranged as a tree rather than a feed."}
+          {tagline ?? "lucas' notes"}
         </p>
       </div>
     </header>
