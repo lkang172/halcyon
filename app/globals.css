@@ -221,26 +221,36 @@ h1, h2, h3, h4 {
 }
 .tree-zoom button:hover { border-color: var(--ink); color: var(--accent); }
 
-.edge { fill: none; stroke: var(--rule); stroke-width: 1.25; }
-.edge.lit { stroke: var(--accent); stroke-width: 1.75; }
+.edge {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke 160ms ease;
+}
+.edge.lit { stroke: var(--accent); stroke-width: 2; }
 
-.node-box {
+.node-g { cursor: grab; }
+.node-g.held { cursor: grabbing; }
+.node-g:focus-visible { outline: none; }
+
+.node-blob {
   fill: var(--paper-raised);
   stroke: var(--ink);
   stroke-width: 1;
-  transition: fill 120ms ease;
+  transition: fill 160ms ease, stroke 160ms ease;
 }
-.node-g { cursor: pointer; }
-.node-g:hover .node-box { fill: #fff; stroke: var(--accent); }
-.node-g:focus-visible { outline: none; }
-.node-g:focus-visible .node-box { stroke: var(--accent); stroke-width: 2; }
-
 .node-shadow { fill: var(--accent-soft); }
+
+.node-g:hover .node-blob { fill: #fff; stroke: var(--accent); }
+.node-g.held .node-blob { fill: #fff; stroke: var(--accent); }
+.node-g:focus-visible .node-blob { stroke: var(--accent); stroke-width: 2; }
 
 .node-title {
   font-family: var(--serif);
   font-size: 17px;
   fill: var(--ink);
+  pointer-events: none;
 }
 .node-cat {
   font-family: var(--mono);
@@ -248,10 +258,12 @@ h1, h2, h3, h4 {
   letter-spacing: 0.16em;
   fill: var(--ink-faint);
   text-transform: uppercase;
+  pointer-events: none;
 }
-.node-root .node-box { fill: var(--ink); stroke: var(--ink); }
+.node-root .node-blob { fill: var(--ink); stroke: var(--ink); }
 .node-root .node-title { fill: var(--paper); font-style: italic; }
 .node-root .node-cat { fill: var(--accent-soft); }
+.node-root:hover .node-blob { fill: #2b2721; stroke: var(--accent); }
 
 /* ---------- home preview panel ---------- */
 

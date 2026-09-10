@@ -42,7 +42,7 @@ export default async function TreePage({ params }: { params: Promise<Params> }) 
           ))}
         </nav>
       </div>
-      <TreeExplorer layout={layout} />
+      <TreeExplorer layout={layout} storageKey={found.slug} />
       <Footer />
     </main>
   );

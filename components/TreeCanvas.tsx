@@ -2,35 +2,80 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NODE_H, NODE_W, type FlatLayout, type FlatNode } from "@/lib/tree";
+import { blobPath } from "@/lib/blob";
+import type { FlatLayout, FlatNode } from "@/lib/tree";
 
-const MIN_SCALE = 0.35;
+const MIN_SCALE = 0.3;
 const MAX_SCALE = 2.2;
 
-/** Curved edge: drops out of the parent, sweeps across, rises into the child. */
-function edgePath(from: [number, number], to: [number, number]) {
-  const [x1, y1] = [from[0], from[1] + NODE_H / 2];
-  const [x2, y2] = [to[0], to[1] - NODE_H / 2];
-  const mid = (y1 + y2) / 2;
-  return `M ${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`;
+type Offset = { dx: number; dy: number };
+type Offsets = Record<string, Offset>;
+
+function loadOffsets(key: string): Offsets {
+  try {
+    const raw = window.localStorage.getItem(`halcyon:tree:${key}`);
+    return raw ? (JSON.parse(raw) as Offsets) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveOffsets(key: string, offsets: Offsets) {
+  try {
+    if (Object.keys(offsets).length === 0) window.localStorage.removeItem(`halcyon:tree:${key}`);
+    else window.localStorage.setItem(`halcyon:tree:${key}`, JSON.stringify(offsets));
+  } catch {
+    /* private browsing, blocked storage: the arrangement just will not persist */
+  }
+}
+
+/** Deterministic wobble in [-1, 1], used to bend each edge its own way. */
+function wobble(seed: number, salt: number) {
+  const x = Math.sin(seed * 12.9898 + salt * 78.233) * 43758.5453;
+  return (x - Math.floor(x)) * 2 - 1;
 }
 
 export default function TreeCanvas({
   layout,
+  storageKey,
   onFocus,
 }: {
   layout: FlatLayout;
+  storageKey: string;
   onFocus: (node: FlatNode | null) => void;
 }) {
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
-  const [dragging, setDragging] = useState(false);
+  const [offsets, setOffsets] = useState<Offsets>({});
+  const [panning, setPanning] = useState(false);
+  const [held, setHeld] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
-  const drag = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
+
+  const pan = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
+  const nodeDrag = useRef<{ id: string; px: number; py: number; ox: number; oy: number } | null>(null);
   const moved = useRef(false);
 
+  // Mirrored in a ref so the pointer-up handler always persists the latest
+  // arrangement rather than whatever the closure captured.
+  const offsetsRef = useRef<Offsets>({});
+  useEffect(() => {
+    offsetsRef.current = offsets;
+  }, [offsets]);
+
+  useEffect(() => setOffsets(loadOffsets(storageKey)), [storageKey]);
+
   const byId = useMemo(() => new Map(layout.nodes.map((n) => [n.id, n])), [layout.nodes]);
+
+  const posOf = useCallback(
+    (id: string): [number, number] => {
+      const n = byId.get(id);
+      if (!n) return [0, 0];
+      const o = offsets[id];
+      return [n.x + (o?.dx ?? 0), n.y + (o?.dy ?? 0)];
+    },
+    [byId, offsets],
+  );
 
   // Every edge from the hovered node up to the root, so the lineage reads at a glance.
   const litEdges = useMemo(() => {
@@ -96,23 +141,47 @@ export default function TreeCanvas({
       };
     });
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    drag.current = { px: e.clientX, py: e.clientY, ox: view.x, oy: view.y };
+  const scatter = () => {
+    setOffsets({});
+    saveOffsets(storageKey, {});
+    fit();
+  };
+
+  const startPan = (e: React.PointerEvent) => {
+    pan.current = { px: e.clientX, py: e.clientY, ox: view.x, oy: view.y };
+    setPanning(true);
+    wrap.current?.setPointerCapture(e.pointerId);
+  };
+
+  const startNodeDrag = (e: React.PointerEvent, n: FlatNode) => {
+    e.stopPropagation();
+    const o = offsets[n.id] ?? { dx: 0, dy: 0 };
+    nodeDrag.current = { id: n.id, px: e.clientX, py: e.clientY, ox: o.dx, oy: o.dy };
     moved.current = false;
-    setDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setHeld(n.id);
+    wrap.current?.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    const d = drag.current;
-    if (!d) return;
-    if (Math.hypot(e.clientX - d.px, e.clientY - d.py) > 4) moved.current = true;
-    setView((v) => ({ ...v, x: d.ox + (e.clientX - d.px), y: d.oy + (e.clientY - d.py) }));
+    const nd = nodeDrag.current;
+    if (nd) {
+      if (Math.hypot(e.clientX - nd.px, e.clientY - nd.py) > 4) moved.current = true;
+      const dx = nd.ox + (e.clientX - nd.px) / view.scale;
+      const dy = nd.oy + (e.clientY - nd.py) / view.scale;
+      setOffsets((prev) => ({ ...prev, [nd.id]: { dx, dy } }));
+      return;
+    }
+    const p = pan.current;
+    if (!p) return;
+    setView((v) => ({ ...v, x: p.ox + (e.clientX - p.px), y: p.oy + (e.clientY - p.py) }));
   };
 
   const endDrag = () => {
-    drag.current = null;
-    setDragging(false);
+    if (nodeDrag.current && moved.current) saveOffsets(storageKey, offsetsRef.current);
+    nodeDrag.current = null;
+    pan.current = null;
+    setHeld(null);
+    setPanning(false);
   };
 
   const enter = (n: FlatNode) => {
@@ -126,16 +195,37 @@ export default function TreeCanvas({
   };
 
   const open = (n: FlatNode) => {
-    // A click that ended a pan should not navigate.
+    // A click that ended a drag should not navigate.
     if (moved.current) return;
     if (n.href) router.push(n.href);
   };
 
+  /**
+   * A hand-drawn looking link: it leaves the parent, wanders sideways by an
+   * amount unique to the pair, and settles into the child.
+   */
+  const edgePath = (fromId: string, toId: string, seed: number) => {
+    const from = byId.get(fromId);
+    const to = byId.get(toId);
+    if (!from || !to) return "";
+    const [fx, fy] = posOf(fromId);
+    const [tx, ty] = posOf(toId);
+    const y1 = fy + from.ry * 0.72;
+    const y2 = ty - to.ry * 0.72;
+    const span = y2 - y1;
+    const sway = wobble(seed, 3) * 52;
+    const c1x = fx + sway;
+    const c1y = y1 + span * (0.42 + wobble(seed, 4) * 0.12);
+    const c2x = tx - sway * 0.7;
+    const c2y = y2 - span * (0.42 + wobble(seed, 5) * 0.12);
+    return `M ${fx} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx} ${y2}`;
+  };
+
   return (
     <div
-      className={`tree-wrap${dragging ? " dragging" : ""}`}
+      className={`tree-wrap${panning ? " dragging" : ""}`}
       ref={wrap}
-      onPointerDown={onPointerDown}
+      onPointerDown={startPan}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
@@ -147,57 +237,61 @@ export default function TreeCanvas({
             <path
               key={`${e.fromId}->${e.toId}`}
               className={`edge${litEdges.has(`${e.fromId}->${e.toId}`) ? " lit" : ""}`}
-              d={edgePath(e.from, e.to)}
+              d={edgePath(e.fromId, e.toId, e.seed)}
             />
           ))}
-          {layout.nodes.map((n) => (
-            <g
-              key={n.id}
-              className={`node-g${n.href ? "" : " node-root"}`}
-              role="treeitem"
-              aria-level={n.depth + 1}
-              tabIndex={0}
-              onMouseEnter={() => enter(n)}
-              onFocus={() => enter(n)}
-              onBlur={leave}
-              onClick={() => open(n)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  open(n);
-                }
-              }}
-            >
-              <rect
-                className="node-shadow"
-                x={n.x - NODE_W / 2 + 4}
-                y={n.y - NODE_H / 2 + 4}
-                width={NODE_W}
-                height={NODE_H}
-              />
-              <rect
-                className="node-box"
-                x={n.x - NODE_W / 2}
-                y={n.y - NODE_H / 2}
-                width={NODE_W}
-                height={NODE_H}
-              />
-              <text className="node-cat" x={n.x} y={n.y - 12} textAnchor="middle">
-                {n.label}
-              </text>
-              <text className="node-title" x={n.x} y={n.y + 12} textAnchor="middle">
-                {n.title.length > 26 ? `${n.title.slice(0, 25)}…` : n.title}
-              </text>
-            </g>
-          ))}
+          {layout.nodes.map((n) => {
+            const [x, y] = posOf(n.id);
+            return (
+              <g
+                key={n.id}
+                className={`node-g${n.href ? "" : " node-root"}${held === n.id ? " held" : ""}`}
+                role="treeitem"
+                aria-level={n.depth + 1}
+                tabIndex={0}
+                transform={`translate(${x} ${y})`}
+                onPointerDown={(e) => startNodeDrag(e, n)}
+                onMouseEnter={() => enter(n)}
+                onFocus={() => enter(n)}
+                onBlur={leave}
+                onClick={() => open(n)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    moved.current = false;
+                    open(n);
+                  }
+                }}
+              >
+                <path
+                  className="node-shadow"
+                  transform={`translate(6 7) scale(${n.rx} ${n.ry})`}
+                  d={blobPath(n.seed + 9, 9, 0.13)}
+                />
+                <path
+                  className="node-blob"
+                  transform={`scale(${n.rx} ${n.ry})`}
+                  d={blobPath(n.seed, 9, 0.13)}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <text className="node-cat" y={-14} textAnchor="middle">
+                  {n.label}
+                </text>
+                <text className="node-title" y={10} textAnchor="middle">
+                  {n.title.length > 24 ? `${n.title.slice(0, 23)}…` : n.title}
+                </text>
+              </g>
+            );
+          })}
         </g>
       </svg>
 
-      <p className="tree-hint">Drag to pan · scroll to zoom · click a node to read</p>
+      <p className="tree-hint">Drag a blob to move it · drag the field to pan · scroll to zoom</p>
       <div className="tree-zoom">
         <button onClick={() => zoomBy(1 / 1.25)} aria-label="Zoom out">−</button>
         <button onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
         <button onClick={fit} aria-label="Fit tree to view">⤢</button>
+        <button onClick={scatter} aria-label="Reset arrangement">↺</button>
       </div>
     </div>
   );

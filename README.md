@@ -53,5 +53,10 @@ ellipse, so nothing needs to be registered anywhere.
 | `content/articles/` | The essays |
 
 Tree layout is bottom-up: leaves take the next free column and parents centre over their children.
-Sibling subtrees own disjoint column ranges, so nodes can never overlap however wide or lopsided
-a tree grows.
+Sibling subtrees own disjoint column ranges, so nodes can never overlap however wide or lopsided a
+tree grows. A seeded jitter then nudges each node off the grid, and the seed comes from the slug,
+so a piece always lands in the same place.
+
+Nodes are draggable. Whatever you rearrange is saved to `localStorage` under the category slug and
+comes back on the next visit; the ↺ button in the corner throws the arrangement away and refits
+the tree.

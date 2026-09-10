@@ -1,4 +1,5 @@
 import type { Article } from "./articles";
+import { seedFrom } from "./blob";
 
 // Kept local so this module stays free of the filesystem imports in ./articles
 // and can be pulled into client components for its types and constants.
@@ -12,33 +13,36 @@ export type TreeNode = {
   date: string;
   href: string | null;
   parentId: string | null;
+  seed: number;
+  /** Blob radii, in canvas units. */
+  rx: number;
+  ry: number;
   depth: number;
   x: number;
   y: number;
   children: TreeNode[];
 };
 
-export type Edge = { from: [number, number]; to: [number, number]; fromId: string; toId: string };
+export type Edge = { fromId: string; toId: string; seed: number };
 
 export type FlatNode = Omit<TreeNode, "children">;
 export type FlatLayout = { nodes: FlatNode[]; edges: Edge[]; width: number; height: number };
 
-/** Node box, in the same units the canvas draws in. */
-export const NODE_W = 208;
-export const NODE_H = 66;
+const COL = 252;
+const ROW = 158;
+const PAD = 150;
 
-const COL = NODE_W + 26;
-const ROW = NODE_H + 62;
-const PAD = 90;
+/** Deterministic wobble in [-1, 1], so a node always lands in the same spot. */
+function wobble(seed: number, salt: number) {
+  const x = Math.sin(seed * 12.9898 + salt * 78.233) * 43758.5453;
+  return (x - Math.floor(x)) * 2 - 1;
+}
 
 /**
  * Builds one tree per category. A node may have any number of children; the
  * frontmatter only says who the parent is.
  */
-export function buildCategoryLayout(
-  categoryName: string,
-  articles: Article[],
-): FlatLayout {
+export function buildCategoryLayout(categoryName: string, articles: Article[]): FlatLayout {
   const byId = new Map<string, TreeNode>();
 
   const make = (
@@ -48,10 +52,15 @@ export function buildCategoryLayout(
     excerpt: string,
     date: string,
     href: string | null,
-  ): TreeNode => ({
-    id, title, label, excerpt, date, href,
-    parentId: null, depth: 0, x: 0, y: 0, children: [],
-  });
+  ): TreeNode => {
+    const seed = seedFrom(id);
+    const rx = Math.min(136, 84 + title.length * 3);
+    return {
+      id, title, label, excerpt, date, href, seed,
+      rx, ry: Math.round(rx * 0.46),
+      parentId: null, depth: 0, x: 0, y: 0, children: [],
+    };
+  };
 
   const root = make(ROOT_ID, categoryName, "the category", "", "", null);
   byId.set(ROOT_ID, root);
@@ -71,8 +80,9 @@ export function buildCategoryLayout(
   }
 
   // Tidy layout: leaves take the next free column, parents centre over their
-  // children. Because sibling subtrees own disjoint column ranges, no two
-  // nodes on a level can collide however wide the tree grows.
+  // children. Sibling subtrees own disjoint column ranges, so nothing can
+  // collide. The jitter afterwards loosens the grid without reintroducing
+  // overlap, since it is far smaller than the spacing it perturbs.
   let nextColumn = 0;
   const nodes: TreeNode[] = [];
   const place = (n: TreeNode, depth: number) => {
@@ -83,29 +93,32 @@ export function buildCategoryLayout(
       nextColumn += 1;
     } else {
       for (const child of n.children) place(child, depth + 1);
-      const first = n.children[0].x;
-      const last = n.children[n.children.length - 1].x;
-      n.x = (first + last) / 2;
+      n.x = (n.children[0].x + n.children[n.children.length - 1].x) / 2;
     }
     nodes.push(n);
   };
   place(root, 0);
 
+  for (const n of nodes) {
+    if (n.id === ROOT_ID) continue;
+    n.x = Math.round(n.x + wobble(n.seed, 1) * 30);
+    n.y = Math.round(n.y + wobble(n.seed, 2) * 26);
+  }
+
   const edges: Edge[] = [];
   for (const n of nodes) {
     for (const c of n.children) {
-      edges.push({ from: [n.x, n.y], to: [c.x, c.y], fromId: n.id, toId: c.id });
+      edges.push({ fromId: n.id, toId: c.id, seed: (n.seed + c.seed) % 100000 });
     }
   }
 
-  const width = PAD * 2 + Math.max(0, nextColumn - 1) * COL;
-  const maxDepth = nodes.reduce((m, n) => Math.max(m, n.depth), 0);
-  const height = PAD * 2 + maxDepth * ROW;
+  const right = nodes.reduce((m, n) => Math.max(m, n.x + n.rx), 0);
+  const bottom = nodes.reduce((m, n) => Math.max(m, n.y + n.ry), 0);
 
   return {
     nodes: nodes.map(({ children, ...rest }) => rest),
     edges,
-    width,
-    height,
+    width: right + PAD,
+    height: bottom + PAD,
   };
 }

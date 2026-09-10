@@ -5,12 +5,18 @@ import { useState } from "react";
 import TreeCanvas from "@/components/TreeCanvas";
 import type { FlatLayout, FlatNode } from "@/lib/tree";
 
-export default function TreeExplorer({ layout }: { layout: FlatLayout }) {
+export default function TreeExplorer({
+  layout,
+  storageKey,
+}: {
+  layout: FlatLayout;
+  storageKey: string;
+}) {
   const [focused, setFocused] = useState<FlatNode | null>(null);
 
   return (
     <>
-      <TreeCanvas layout={layout} onFocus={setFocused} />
+      <TreeCanvas layout={layout} storageKey={storageKey} onFocus={setFocused} />
       <div className="preview">
         {focused ? (
           <div>
