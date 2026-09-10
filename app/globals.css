@@ -183,6 +183,8 @@ h1, h2, h3, h4 {
   overflow: hidden;
   touch-action: none;
   cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .tree-wrap.dragging { cursor: grabbing; }
 
