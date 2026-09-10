@@ -28,9 +28,9 @@ export type Edge = { fromId: string; toId: string; seed: number };
 export type FlatNode = Omit<TreeNode, "children">;
 export type FlatLayout = { nodes: FlatNode[]; edges: Edge[]; width: number; height: number };
 
-const COL = 252;
-const ROW = 158;
-const PAD = 150;
+const COL = 348;
+const ROW = 214;
+const PAD = 170;
 
 /** Deterministic wobble in [-1, 1], so a node always lands in the same spot. */
 function wobble(seed: number, salt: number) {
@@ -54,7 +54,7 @@ export function buildCategoryLayout(categoryName: string, articles: Article[]): 
     href: string | null,
   ): TreeNode => {
     const seed = seedFrom(id);
-    const rx = Math.min(136, 84 + title.length * 3);
+    const rx = Math.min(168, 100 + title.length * 3.6);
     return {
       id, title, label, excerpt, date, href, seed,
       rx, ry: Math.round(rx * 0.46),
@@ -101,8 +101,8 @@ export function buildCategoryLayout(categoryName: string, articles: Article[]): 
 
   for (const n of nodes) {
     if (n.id === ROOT_ID) continue;
-    n.x = Math.round(n.x + wobble(n.seed, 1) * 30);
-    n.y = Math.round(n.y + wobble(n.seed, 2) * 26);
+    n.x = Math.round(n.x + wobble(n.seed, 1) * 40);
+    n.y = Math.round(n.y + wobble(n.seed, 2) * 34);
   }
 
   const edges: Edge[] = [];

@@ -274,10 +274,10 @@ export default function TreeCanvas({
                   d={blobPath(n.seed, 9, 0.13)}
                   vectorEffect="non-scaling-stroke"
                 />
-                <text className="node-cat" y={-14} textAnchor="middle">
+                <text className="node-cat" y={-16} textAnchor="middle">
                   {n.label}
                 </text>
-                <text className="node-title" y={10} textAnchor="middle">
+                <text className="node-title" y={13} textAnchor="middle">
                   {n.title.length > 24 ? `${n.title.slice(0, 23)}…` : n.title}
                 </text>
               </g>
