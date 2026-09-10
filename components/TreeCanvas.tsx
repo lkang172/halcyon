@@ -327,7 +327,7 @@ export default function TreeCanvas({
                   {n.label}
                 </text>
                 <text className="node-title" y={13} textAnchor="middle">
-                  {n.title.length > 24 ? `${n.title.slice(0, 23)}…` : n.title}
+                  {n.title.length > 32 ? `${n.title.slice(0, 31)}…` : n.title}
                 </text>
               </g>
             );
