@@ -38,11 +38,9 @@ function wobble(seed: number, salt: number) {
 export default function TreeCanvas({
   layout,
   storageKey,
-  onFocus,
 }: {
   layout: FlatLayout;
   storageKey: string;
-  onFocus: (node: FlatNode | null) => void;
 }) {
   const router = useRouter();
   const wrap = useRef<HTMLDivElement>(null);
@@ -184,15 +182,30 @@ export default function TreeCanvas({
     setPanning(false);
   };
 
-  const enter = (n: FlatNode) => {
-    setHover(n.id);
-    onFocus(n);
-  };
+  const enter = (n: FlatNode) => setHover(n.id);
 
-  const leave = () => {
-    setHover(null);
-    onFocus(null);
-  };
+  const leave = () => setHover(null);
+
+  // Screen-space anchor for the hover card, flipped to the left of the blob
+  // when there is no room to its right.
+  const card = (() => {
+    if (!hover) return null;
+    const n = byId.get(hover);
+    const el = wrap.current;
+    if (!n || !el) return null;
+    const [x, y] = posOf(n.id);
+    const width = el.clientWidth;
+    const sx = view.x + x * view.scale;
+    const sy = view.y + y * view.scale;
+    const reach = n.rx * view.scale + 16;
+    const flip = sx + reach + 272 > width;
+    return {
+      node: n,
+      left: flip ? sx - reach : sx + reach,
+      top: sy,
+      flip,
+    };
+  })();
 
   const open = (n: FlatNode) => {
     // A click that ended a drag should not navigate.
@@ -286,8 +299,20 @@ export default function TreeCanvas({
         </g>
       </svg>
 
+      {card ? (
+        <aside
+          className={`node-card${card.flip ? " flip" : ""}`}
+          style={{ left: card.left, top: card.top }}
+        >
+          <span className="eyebrow">{card.node.label}</span>
+          <h3>{card.node.title}</h3>
+          <p>{card.node.excerpt || "Everything below grows out of this cluster."}</p>
+          {card.node.href ? <span className="node-card-cue">Click to read →</span> : null}
+        </aside>
+      ) : null}
+
       <p className="tree-hint">Drag a blob to move it · drag the field to pan · scroll to zoom</p>
-      <div className="tree-zoom">
+      <div className="tree-zoom" onPointerDown={(e) => e.stopPropagation()}>
         <button onClick={() => zoomBy(1 / 1.25)} aria-label="Zoom out">−</button>
         <button onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
         <button onClick={fit} aria-label="Fit tree to view">⤢</button>

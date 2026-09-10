@@ -178,10 +178,8 @@ h1, h2, h3, h4 {
 
 .tree-wrap {
   position: relative;
-  margin: 40px 0 0;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  height: min(70vh, 620px);
+  margin: 0;
+  height: 60vh;
   overflow: hidden;
   touch-action: none;
   cursor: grab;
@@ -264,29 +262,6 @@ h1, h2, h3, h4 {
 .node-root .node-title { fill: var(--paper); font-style: italic; }
 .node-root .node-cat { fill: var(--accent-soft); }
 .node-root:hover .node-blob { fill: #2b2721; stroke: var(--accent); }
-
-/* ---------- home preview panel ---------- */
-
-.preview {
-  padding: 26px 40px 56px;
-  min-height: 132px;
-  display: flex;
-  gap: 28px;
-  align-items: flex-start;
-}
-.preview-empty { color: var(--ink-faint); font-style: italic; font-family: var(--serif); }
-.preview h3 { font-size: 1.5rem; margin-bottom: 6px; }
-.preview p { margin: 0; color: var(--ink-soft); font-size: 0.9rem; max-width: 58ch; }
-.preview .meta { margin-top: 10px; }
-.preview-read {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  border-bottom: 1px solid var(--accent);
-  padding-bottom: 2px;
-}
 
 /* ---------- blob field (home) ---------- */
 
@@ -380,41 +355,49 @@ h1, h2, h3, h4 {
   font-family: var(--serif);
 }
 
-/* ---------- tree page header ---------- */
+/* ---------- tree page ---------- */
 
-.tree-head {
-  padding: 34px 40px 0;
+.tree-page {
+  min-height: 100vh;
   display: flex;
-  align-items: baseline;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
-
-.back-link {
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.back-link:hover { color: var(--accent); }
+.tree-page .tree-wrap { flex: 1; height: auto; }
 
 .tree-title {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  margin-right: auto;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.02em;
+  margin: 0;
+  padding: 46px 40px 18px;
 }
 
-.tree-switch { display: flex; gap: 16px; flex-wrap: wrap; }
-.tree-switch a {
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
+/* ---------- hover card ---------- */
+
+.node-card {
+  position: absolute;
+  width: 256px;
+  translate: 0 -50%;
+  background: var(--paper-raised);
+  border: 1px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--accent-soft);
+  padding: 16px 18px;
+  pointer-events: none;
+  z-index: 5;
 }
-.tree-switch a:hover { color: var(--accent); border-color: var(--accent); }
+.node-card.flip { translate: -100% -50%; box-shadow: -6px 6px 0 var(--accent-soft); }
+.node-card h3 { font-size: 1.25rem; margin: 6px 0 8px; }
+.node-card p { margin: 0; font-size: 0.82rem; line-height: 1.55; color: var(--ink-soft); }
+.node-card-cue {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .blob { animation: none; }
@@ -511,7 +494,8 @@ h1, h2, h3, h4 {
   .menu-root { top: 24px; right: 24px; }
   .preview { padding: 24px 24px 48px; flex-direction: column; gap: 14px; }
   .tree-hint { left: 24px; }
-  .tree-head { padding: 28px 24px 0; }
+  .tree-title { padding: 34px 24px 14px; }
+  .node-card { width: 208px; }
   .blob-field { height: min(78vh, 560px); }
   .blob-name { font-size: 1.05rem; }
   .tree-zoom { right: 24px; }
