@@ -1,7 +1,13 @@
-/** Deterministic pseudo-random in [0, 1) so blobs look organic but never reflow. */
-function rand(seed: number) {
-  const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
+/**
+ * Deterministic pseudo-random in [0, 1). Integer arithmetic only: Math.sin
+ * differs in the last bits between Node and the browser, which showed up as a
+ * hydration mismatch on every generated path.
+ */
+export function rand(seed: number) {
+  let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h / 4294967296;
 }
 
 export function seedFrom(value: string) {
@@ -52,12 +58,12 @@ export function placeBlob(index: number, total: number, weight: number, seed: nu
   const jitterX = (rand(seed) - 0.5) * 9;
   const jitterY = (rand(seed + 91) - 0.5) * 9;
   return {
-    left: 50 + Math.cos(angle) * 27 + jitterX,
-    top: 50 + Math.sin(angle) * 25 + jitterY,
+    left: Math.round((50 + Math.cos(angle) * 27 + jitterX) * 100) / 100,
+    top: Math.round((50 + Math.sin(angle) * 25 + jitterY) * 100) / 100,
     size: Math.round(Math.min(300, 186 + weight * 13)),
-    duration: 17 + rand(seed + 7) * 12,
-    delay: -rand(seed + 13) * 14,
-    drift: 8 + rand(seed + 21) * 10,
-    tilt: 2 + rand(seed + 33) * 4,
+    duration: Math.round((17 + rand(seed + 7) * 12) * 10) / 10,
+    delay: Math.round(-rand(seed + 13) * 140) / 10,
+    drift: Math.round(8 + rand(seed + 21) * 10),
+    tilt: Math.round((2 + rand(seed + 33) * 4) * 10) / 10,
   };
 }

@@ -1,5 +1,5 @@
 import type { Article } from "./articles";
-import { seedFrom } from "./blob";
+import { rand, seedFrom } from "./blob";
 
 // Kept local so this module stays free of the filesystem imports in ./articles
 // and can be pulled into client components for its types and constants.
@@ -34,8 +34,7 @@ const PAD = 170;
 
 /** Deterministic wobble in [-1, 1], so a node always lands in the same spot. */
 function wobble(seed: number, salt: number) {
-  const x = Math.sin(seed * 12.9898 + salt * 78.233) * 43758.5453;
-  return (x - Math.floor(x)) * 2 - 1;
+  return rand(seed * 7919 + salt * 104729) * 2 - 1;
 }
 
 /**

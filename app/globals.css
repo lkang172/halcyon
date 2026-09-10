@@ -186,6 +186,14 @@ h1, h2, h3, h4 {
 }
 .tree-wrap.dragging { cursor: grabbing; }
 
+/* A percentage height against a flex item with auto height collapses to the
+   SVG default of 150px, so the canvas is pinned to the box instead. */
+.tree-wrap svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
 .tree-hint {
   position: absolute;
   left: 40px;

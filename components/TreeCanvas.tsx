@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { blobPath } from "@/lib/blob";
+import { blobPath, rand } from "@/lib/blob";
 import type { FlatLayout, FlatNode } from "@/lib/tree";
 
 const MIN_SCALE = 0.3;
@@ -31,9 +31,10 @@ function saveOffsets(key: string, offsets: Offsets) {
 
 /** Deterministic wobble in [-1, 1], used to bend each edge its own way. */
 function wobble(seed: number, salt: number) {
-  const x = Math.sin(seed * 12.9898 + salt * 78.233) * 43758.5453;
-  return (x - Math.floor(x)) * 2 - 1;
+  return rand(seed * 7919 + salt * 104729) * 2 - 1;
 }
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 export default function TreeCanvas({
   layout,
@@ -49,6 +50,7 @@ export default function TreeCanvas({
   const [panning, setPanning] = useState(false);
   const [held, setHeld] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [restored, setRestored] = useState(0);
 
   const pan = useRef<{ px: number; py: number; ox: number; oy: number } | null>(null);
   const nodeDrag = useRef<{ id: string; px: number; py: number; ox: number; oy: number } | null>(null);
@@ -61,7 +63,12 @@ export default function TreeCanvas({
     offsetsRef.current = offsets;
   }, [offsets]);
 
-  useEffect(() => setOffsets(loadOffsets(storageKey)), [storageKey]);
+  useEffect(() => {
+    const saved = loadOffsets(storageKey);
+    offsetsRef.current = saved;
+    setOffsets(saved);
+    setRestored((n) => n + 1);
+  }, [storageKey]);
 
   const byId = useMemo(() => new Map(layout.nodes.map((n) => [n.id, n])), [layout.nodes]);
 
@@ -88,23 +95,52 @@ export default function TreeCanvas({
     return lit;
   }, [hover, byId]);
 
+  /**
+   * Frames the tree as it actually stands, blob extents and any dragged
+   * positions included, so nothing is ever clipped on arrival.
+   */
   const fit = useCallback(() => {
     const el = wrap.current;
     if (!el) return;
     const { width, height } = el.getBoundingClientRect();
-    const scale = Math.min(width / layout.width, height / layout.height, 1);
+    if (width === 0 || height === 0) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const n of layout.nodes) {
+      const o = offsetsRef.current[n.id];
+      const x = n.x + (o?.dx ?? 0);
+      const y = n.y + (o?.dy ?? 0);
+      minX = Math.min(minX, x - n.rx);
+      maxX = Math.max(maxX, x + n.rx);
+      minY = Math.min(minY, y - n.ry);
+      maxY = Math.max(maxY, y + n.ry);
+    }
+    if (!Number.isFinite(minX)) return;
+
+    const margin = 48;
+    const spanX = maxX - minX + margin * 2;
+    const spanY = maxY - minY + margin * 2;
+    const scale = Math.min(width / spanX, height / spanY, 1.4);
     setView({
-      x: (width - layout.width * scale) / 2,
-      y: (height - layout.height * scale) / 2,
+      x: (width - spanX * scale) / 2 - (minX - margin) * scale,
+      y: (height - spanY * scale) / 2 - (minY - margin) * scale,
       scale,
     });
-  }, [layout.width, layout.height]);
+  }, [layout.nodes]);
 
   useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
     fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, [fit]);
+    // The canvas is a flex child, so its box settles after layout rather than
+    // at mount; a resize observer catches that as well as window resizes.
+    const observer = new ResizeObserver(() => fit());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fit, restored]);
 
   // Registered manually because React attaches wheel listeners passively.
   useEffect(() => {
@@ -231,7 +267,7 @@ export default function TreeCanvas({
     const c1y = y1 + span * (0.42 + wobble(seed, 4) * 0.12);
     const c2x = tx - sway * 0.7;
     const c2y = y2 - span * (0.42 + wobble(seed, 5) * 0.12);
-    return `M ${fx} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx} ${y2}`;
+    return `M ${r2(fx)} ${r2(y1)} C ${r2(c1x)} ${r2(c1y)}, ${r2(c2x)} ${r2(c2y)}, ${r2(tx)} ${r2(y2)}`;
   };
 
   return (
