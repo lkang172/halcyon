@@ -53,6 +53,7 @@ function readOne(file: string): Article {
 }
 
 export function getArticles(): Article[] {
+  if (!fs.existsSync(ARTICLES_DIR)) return [];
   return fs
     .readdirSync(ARTICLES_DIR)
     .filter((f) => f.endsWith(".md"))

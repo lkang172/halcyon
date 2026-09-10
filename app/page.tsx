@@ -5,12 +5,20 @@ import { getCategories } from "@/lib/articles";
 
 export default function HomePage() {
   const categories = getCategories();
-  const total = categories.reduce((n, c) => n + c.articles.length, 0);
 
   return (
     <main>
       <Masthead tagline={`lucas' thoughts on emerging technology`} />
-      <BlobField categories={categories} />
+      {categories.length > 0 ? (
+        <BlobField categories={categories} />
+      ) : (
+        <div className="field-empty">
+          <p>Nothing has been written here yet.</p>
+          <span className="eyebrow">
+            The first Markdown file in content/articles grows the first branch
+          </span>
+        </div>
+      )}
       <Footer />
     </main>
   );

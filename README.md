@@ -16,6 +16,11 @@ npm run build   # static export into ./out
 The site is a static export, so `out/` can be served by anything: GitHub Pages, Netlify, Vercel,
 or `npx serve out`.
 
+Static export is switched on in `next.config.ts` only when at least one article exists. Export
+requires every dynamic route to generate at least one path, and the category and article routes
+generate none while nothing has been written. With an empty `content/articles` the build still
+succeeds, it just produces a server build rather than an export.
+
 ## Writing an article
 
 Add a Markdown file to `content/articles/`. The filename becomes the URL slug.

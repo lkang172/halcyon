@@ -17,10 +17,16 @@
 
 * { box-sizing: border-box; }
 
-html, body {
+html {
+  background: var(--paper);
+}
+
+body {
   margin: 0;
   padding: 0;
-  background: var(--paper);
+  /* Transparent on purpose: an opaque body background paints over the fixed
+     grid layer below, which hid the grid everywhere the page had content. */
+  background: transparent;
   color: var(--ink);
   font-family: var(--sans);
   font-size: 16px;
@@ -48,6 +54,14 @@ body::before {
 }
 
 a { color: inherit; text-decoration: none; }
+
+/* Keeps the footer on the bottom edge when a page is shorter than the window. */
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main > .site-foot { margin-top: auto; }
 
 h1, h2, h3, h4 {
   font-family: var(--serif);
@@ -516,3 +530,23 @@ h1, h2, h3, h4 {
 .tree-jump { color: var(--ink-faint); border-bottom: 1px solid transparent; }
 .tree-jump:hover { color: var(--accent); border-color: var(--accent); }
 .article-meta a.eyebrow:hover { color: var(--accent); }
+
+/* ---------- empty state ---------- */
+
+.field-empty {
+  height: min(56vh, 460px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 0 24px;
+}
+.field-empty p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+  font-style: italic;
+  color: var(--ink-faint);
+}

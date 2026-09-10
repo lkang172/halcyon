@@ -50,6 +50,15 @@ export default function ContentsIndex({ articles }: { articles: Article[] }) {
     };
   }, [articles, query]);
 
+  // After the hooks, so the hook order never changes with the content.
+  if (articles.length === 0) {
+    return (
+      <p className="no-results">
+        Nothing has been written here yet, so there is nothing to index.
+      </p>
+    );
+  }
+
   return (
     <>
       <div className="search-field">
