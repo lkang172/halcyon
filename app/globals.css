@@ -268,23 +268,14 @@ h1, h2, h3, h4 {
 .node-g.held .node-blob { fill: #fff; stroke: var(--accent); }
 .node-g:focus-visible .node-blob { stroke: var(--accent); stroke-width: 2; }
 
+/* Size is set per node so a long title can shrink to fit its blob. */
 .node-title {
   font-family: var(--serif);
-  font-size: 22px;
   fill: var(--ink);
-  pointer-events: none;
-}
-.node-cat {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
-  fill: var(--ink-faint);
-  text-transform: uppercase;
   pointer-events: none;
 }
 .node-root .node-blob { fill: var(--ink); stroke: var(--ink); }
 .node-root .node-title { fill: var(--paper); font-style: italic; }
-.node-root .node-cat { fill: var(--accent-soft); }
 .node-root:hover .node-blob { fill: #2b2721; stroke: var(--accent); }
 
 /* ---------- blob field (home) ---------- */
@@ -433,6 +424,9 @@ h1, h2, h3, h4 {
 .article-head h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 14px 0 16px; }
 .article-meta { display: flex; gap: 18px; flex-wrap: wrap; }
 
+/* Opaque, so the paper grid stops at the edge of a piece you are reading. */
+.article-page { background: var(--paper); }
+
 .prose { font-family: var(--serif); font-size: 1.12rem; line-height: 1.72; color: #24211d; }
 .prose h2 { font-size: 1.55rem; margin: 44px 0 12px; }
 .prose p { margin: 0 0 20px; }
@@ -443,6 +437,28 @@ h1, h2, h3, h4 {
   color: var(--ink-soft);
   font-style: italic;
 }
+/* Figures: a Markdown image alone in a paragraph, its title used as caption. */
+.prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border: 1px solid var(--rule);
+  background: var(--paper-raised);
+}
+
+.prose figure { margin: 34px 0; }
+
+.prose figcaption {
+  margin-top: 10px;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.prose figcaption a { border-bottom: 1px solid var(--accent-soft); }
+.prose figcaption a:hover { color: var(--accent); border-color: var(--accent); }
+
 .prose ol, .prose ul { padding-left: 22px; margin: 0 0 20px; }
 .prose li { margin-bottom: 6px; }
 

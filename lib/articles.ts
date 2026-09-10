@@ -7,6 +7,51 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 
+type HastNode = {
+  type: string;
+  tagName?: string;
+  value?: string;
+  properties?: Record<string, unknown>;
+  children?: HastNode[];
+};
+
+/**
+ * Promotes a paragraph holding nothing but an image into a <figure>, captioned
+ * with the image's Markdown title if it has one, else its alt text.
+ */
+function rehypeFigures() {
+  return (tree: HastNode) => {
+    const walk = (node: HastNode) => {
+      if (!node.children) return;
+      node.children = node.children.map((child) => {
+        walk(child);
+        if (child.type !== "element" || child.tagName !== "p") return child;
+
+        const meaningful = child.children?.filter(
+          (c) => c.type !== "text" || (c.value ?? "").trim() !== "",
+        );
+        if (meaningful?.length !== 1) return child;
+
+        const img = meaningful[0];
+        if (img.type !== "element" || img.tagName !== "img") return child;
+
+        const caption = img.properties?.title ?? img.properties?.alt;
+        const children: HastNode[] = [img];
+        if (typeof caption === "string" && caption.trim() !== "") {
+          children.push({
+            type: "element",
+            tagName: "figcaption",
+            properties: {},
+            children: [{ type: "text", value: caption }],
+          });
+        }
+        return { type: "element", tagName: "figure", properties: {}, children };
+      });
+    };
+    walk(tree);
+  };
+}
+
 const ARTICLES_DIR = path.join(process.cwd(), "content", "articles");
 
 export const ROOT_ID = "root";
@@ -71,6 +116,7 @@ export function getArticle(slug: string): { meta: Article; html: string } | null
       .use(remarkParse)
       .use(remarkGfm)
       .use(remarkRehype)
+      .use(rehypeFigures)
       .use(rehypeStringify)
       .processSync(content),
   );

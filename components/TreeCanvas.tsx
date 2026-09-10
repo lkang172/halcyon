@@ -36,6 +36,49 @@ function wobble(seed: number, salt: number) {
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+const MAX_TITLE_SIZE = 24;
+const MIN_TITLE_SIZE = 13;
+/** Instrument Serif runs about 0.39em per character; 0.43 leaves a margin. */
+const CHAR_EM = 0.43;
+
+function wrapWords(title: string, maxChars: number): string[] {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of title.split(/\s+/)) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (candidate.length <= maxChars || !line) line = candidate;
+    else {
+      lines.push(line);
+      line = word;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/**
+ * Fits a whole title inside a blob: two lines by preference, then smaller
+ * type, and only a third line once the type is as small as it goes. Titles are
+ * never cut short.
+ */
+function fitTitle(title: string, rx: number): { lines: string[]; size: number } {
+  // Blobs pinch towards their edges, so the usable run is well short of 2 * rx.
+  const inner = rx * 1.52;
+  let fallback: { lines: string[]; size: number } | null = null;
+
+  for (let size = MAX_TITLE_SIZE; size >= MIN_TITLE_SIZE; size -= 1) {
+    const maxChars = Math.max(6, Math.floor(inner / (size * CHAR_EM)));
+    const lines = wrapWords(title, maxChars);
+    const fits = lines.every((l) => l.length <= maxChars);
+    if (fits && lines.length <= 2) return { lines, size };
+    if (fits && !fallback) fallback = { lines, size };
+  }
+
+  if (fallback) return fallback;
+  const maxChars = Math.max(6, Math.floor(inner / (MIN_TITLE_SIZE * CHAR_EM)));
+  return { lines: wrapWords(title, maxChars), size: MIN_TITLE_SIZE };
+}
+
 export default function TreeCanvas({
   layout,
   storageKey,
@@ -210,8 +253,17 @@ export default function TreeCanvas({
     setView((v) => ({ ...v, x: p.ox + (e.clientX - p.px), y: p.oy + (e.clientY - p.py) }));
   };
 
-  const endDrag = () => {
-    if (nodeDrag.current && moved.current) saveOffsets(storageKey, offsetsRef.current);
+  /**
+   * Opening happens here rather than on click: the pointer is captured by the
+   * wrapper so the drag survives leaving the blob, which also means the click
+   * event is delivered to the wrapper and never reaches the node.
+   */
+  const endDrag = (navigate: boolean) => {
+    const nd = nodeDrag.current;
+    if (nd) {
+      if (moved.current) saveOffsets(storageKey, offsetsRef.current);
+      else if (navigate) open(nd.id);
+    }
     nodeDrag.current = null;
     pan.current = null;
     setHeld(null);
@@ -243,10 +295,9 @@ export default function TreeCanvas({
     };
   })();
 
-  const open = (n: FlatNode) => {
-    // A click that ended a drag should not navigate.
-    if (moved.current) return;
-    if (n.href) router.push(n.href);
+  const open = (id: string) => {
+    const href = byId.get(id)?.href;
+    if (href) router.push(href);
   };
 
   /**
@@ -276,8 +327,8 @@ export default function TreeCanvas({
       ref={wrap}
       onPointerDown={startPan}
       onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
+      onPointerUp={() => endDrag(true)}
+      onPointerCancel={() => endDrag(false)}
       onMouseLeave={leave}
     >
       <svg width="100%" height="100%" role="tree" aria-label="Article tree">
@@ -291,6 +342,9 @@ export default function TreeCanvas({
           ))}
           {layout.nodes.map((n) => {
             const [x, y] = posOf(n.id);
+            const { lines, size } = fitTitle(n.title, n.rx);
+            const leading = size * 1.16;
+            const firstBaseline = ((1 - lines.length) * leading) / 2 + size * 0.35;
             return (
               <g
                 key={n.id}
@@ -303,12 +357,10 @@ export default function TreeCanvas({
                 onMouseEnter={() => enter(n)}
                 onFocus={() => enter(n)}
                 onBlur={leave}
-                onClick={() => open(n)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    moved.current = false;
-                    open(n);
+                    open(n.id);
                   }
                 }}
               >
@@ -323,11 +375,16 @@ export default function TreeCanvas({
                   d={blobPath(n.seed, 9, 0.13)}
                   vectorEffect="non-scaling-stroke"
                 />
-                <text className="node-cat" y={-16} textAnchor="middle">
-                  {n.label}
-                </text>
-                <text className="node-title" y={13} textAnchor="middle">
-                  {n.title.length > 32 ? `${n.title.slice(0, 31)}…` : n.title}
+                <text
+                  className="node-title"
+                  textAnchor="middle"
+                  style={{ fontSize: `${size}px` }}
+                >
+                  {lines.map((line, i) => (
+                    <tspan key={line + i} x={0} y={r2(firstBaseline + i * leading)}>
+                      {line}
+                    </tspan>
+                  ))}
                 </text>
               </g>
             );

@@ -46,6 +46,19 @@ off the category node instead of disappearing.
 name creates a new blob automatically; the field scatters however many exist around a loose
 ellipse, so nothing needs to be registered anywhere.
 
+## Images
+
+Put image files under `public/images/` and reference them from an article by their path
+from `public`:
+
+```markdown
+![Alt text for screen readers](/images/intelligence-index.png "Caption printed under the image.")
+```
+
+An image alone in its own paragraph becomes a `<figure>`. The Markdown title, the quoted part,
+becomes the caption; without one the alt text is used instead. Save a real file into the repo
+rather than hotlinking someone else's asset, and credit the source in the caption.
+
 ## Layout of the code
 
 | Path | What lives there |

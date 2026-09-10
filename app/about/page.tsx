@@ -6,14 +6,15 @@ export const metadata = { title: "About — halcyon" };
 export default function AboutPage() {
   return (
     <main>
-      <Masthead tagline="About the tree and the person pruning it." />
+      <Masthead tagline="about" />
       <div className="shell">
         <span className="eyebrow">About</span>
         <h1 style={{ fontSize: "2.6rem", margin: "12px 0 0" }}>Why a tree</h1>
         <p className="lede">
-          A feed says what is newest. A tree says what came from what. This site is an attempt to
-          learn about artificial intelligence in public, and to keep the shape of the argument
-          visible while doing it.
+          Since the invention of the transformer in 2017, it seems that AI has been evolving at an even more rapid pace.
+          My goal is to learn about emerging technology architectures and use cases, significant breakthroughs, 
+          safety risks, and more, and to document them by writing articles by hand. I believe that the best test of 
+          understanding a concept is to explain it to others. 
         </p>
         <div className="prose">
           <p>

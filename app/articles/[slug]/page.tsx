@@ -36,7 +36,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
   const children = all.filter((a) => a.parent === meta.slug);
 
   return (
-    <main>
+    <main className="article-page">
       <Masthead tagline={parent ? `A branch of “${parent.title}”.` : "Rooted at the top of the tree."} />
       <div className="shell">
         <div className="article-head">
