@@ -19,6 +19,8 @@ type HastNode = {
  * Promotes a paragraph holding nothing but an image into a <figure>, captioned
  * with the image's Markdown title if it has one, else its alt text.
  */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 function rehypeFigures() {
   return (tree: HastNode) => {
     const walk = (node: HastNode) => {
@@ -34,6 +36,13 @@ function rehypeFigures() {
 
         const img = meaningful[0];
         if (img.type !== "element" || img.tagName !== "img") return child;
+
+        // basePath is applied to <Link> automatically but not to raw image
+        // sources, so a root-relative image needs the prefix adding here.
+        const src = img.properties?.src;
+        if (BASE_PATH && typeof src === "string" && src.startsWith("/") && !src.startsWith("//")) {
+          img.properties = { ...img.properties, src: `${BASE_PATH}${src}` };
+        }
 
         const caption = img.properties?.title ?? img.properties?.alt;
         const children: HastNode[] = [img];
