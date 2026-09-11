@@ -37,7 +37,7 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
 
   return (
     <main className="article-page">
-      <Masthead tagline={parent ? `A branch of “${parent.title}”.` : "Rooted at the top of the tree."} />
+      <Masthead tagline={parent ? `A branch of “${parent.title}”.` : undefined} />
       <div className="shell">
         <div className="article-head">
           <div className="article-meta">

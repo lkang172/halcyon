@@ -9,9 +9,7 @@ export default function Masthead({ tagline }: { tagline?: string }) {
             halcyon<span className="dot">.</span>
           </Link>
         </h1>
-        <p className="tagline">
-          {tagline ?? "lucas' notes"}
-        </p>
+        {tagline ? <p className="tagline">{tagline}</p> : null}
       </div>
     </header>
   );
