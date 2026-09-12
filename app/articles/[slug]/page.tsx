@@ -32,7 +32,11 @@ export default async function ArticlePage({ params }: { params: Promise<Params> 
   const all = getArticles();
   const { meta, html } = article;
   const parent = all.find((a) => a.slug === meta.parent) ?? null;
-  const siblings = all.filter((a) => a.parent === meta.parent && a.slug !== meta.slug);
+  // "root" is each category's own root node, not one shared root, so articles
+  // in different categories are not siblings even when both hang off it.
+  const siblings = all.filter(
+    (a) => a.parent === meta.parent && a.category === meta.category && a.slug !== meta.slug,
+  );
   const children = all.filter((a) => a.parent === meta.slug);
 
   return (
