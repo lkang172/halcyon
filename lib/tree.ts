@@ -41,7 +41,11 @@ function wobble(seed: number, salt: number) {
  * Builds one tree per category. A node may have any number of children; the
  * frontmatter only says who the parent is.
  */
-export function buildCategoryLayout(categoryName: string, articles: Article[]): FlatLayout {
+export function buildCategoryLayout(
+  categoryName: string,
+  articles: Article[],
+  categoryDescription = "",
+): FlatLayout {
   const byId = new Map<string, TreeNode>();
 
   const make = (
@@ -61,7 +65,7 @@ export function buildCategoryLayout(categoryName: string, articles: Article[]): 
     };
   };
 
-  const root = make(ROOT_ID, categoryName, "the category", "", "", null);
+  const root = make(ROOT_ID, categoryName, "the category", categoryDescription, "", null);
   byId.set(ROOT_ID, root);
 
   const ordered = [...articles].sort((a, b) => a.date.localeCompare(b.date));

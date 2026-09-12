@@ -79,8 +79,21 @@ export type Article = {
 export type Category = {
   name: string;
   slug: string;
+  description: string;
   articles: Article[];
   latest: string;
+};
+
+/**
+ * What each cluster is about, shown on the root blob of its tree. Keyed by the
+ * slugified category name; a category with no entry here falls back to generic
+ * copy in the hover card.
+ */
+export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  safety:
+    "Keeping AI systems safe for humans",
+  evaluation:
+    "How models are measured",
 };
 
 export function slugify(value: string): string {
@@ -143,6 +156,7 @@ export function getCategories(articles = getArticles()): Category[] {
     .map(([name, list]) => ({
       name,
       slug: slugify(name),
+      description: CATEGORY_DESCRIPTIONS[slugify(name)] ?? "",
       articles: list,
       latest: list.reduce((m, a) => (a.date > m ? a.date : m), ""),
     }))

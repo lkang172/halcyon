@@ -23,7 +23,7 @@ export default async function TreePage({ params }: { params: Promise<Params> }) 
   return (
     <main className="tree-page">
       <h1 className="tree-title">{found.name}</h1>
-      <TreeCanvas layout={buildCategoryLayout(found.name, found.articles)} storageKey={found.slug} />
+      <TreeCanvas layout={buildCategoryLayout(found.name, found.articles, found.description)} storageKey={found.slug} />
     </main>
   );
 }
